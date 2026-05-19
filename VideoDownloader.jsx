@@ -1,33 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Youtube, Link as LinkIcon, HardDrive, PlayCircle, AlertCircle } from 'lucide-react';
-
-const loadingDialogues = [
-  "Setting ho rahi hai...",
-  "Andar baat chal rahi hai.",
-  "System dekh raha hoon.",
-  "Source mil jayega.",
-  "Ho jayega.",
-  "Ek minute.",
-  "Arrangement chal raha hai.",
-  "Line pe hain.",
-  "Kaam almost ho gaya.",
-  "Kaam rukega nahi.",
-  "Connection ban raha hai.",
-  "Line busy hai.",
-  "Aaj thoda complicated lag raha hai..."
-];
-
-const successDialogues = [
-  "Mil gaya.",
-  "Ho gaya kaam.",
-  "Bola tha na.",
-  "Bola tha na ho jayega.",
-  "Source mil gaya 👀"
-];
 
 // Helper function to extract YouTube ID from a full URL
 const getYouTubeId = (url) => {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = url.match(regExp);
   return (match && match[2].length === 11) ? match[2] : null;
 };
@@ -89,114 +64,78 @@ const triggerPhysicalDownload = async (streamUrl, videoTitle = "download") => {
   }
 };
 
+const LOADING_PHRASES = [
+  "ANDAR SETTING CHAL RAHI HAI...",
+  "SOURCE SE BAAT HO RAHI HAI...",
+  "LINE PE RAHO...",
+  "ARRANGEMENT ALMOST HO GAYA...",
+  "25 SECOND MEIN KAAM HO JAYEGA...",
+  "RAJU HANDLE KAR RAHA HAI..."
+];
+
 export default function VideoDownloader() {
   const [url, setUrl] = useState('');
-  const [platform, setPlatform] = useState('none'); // 'none', 'youtube'
-  const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'success', 'error'
-  const [selectedQuality, setSelectedQuality] = useState('');
-  const [validationError, setValidationError] = useState('');
-  const [apiError, setApiError] = useState('');
   const [videoData, setVideoData] = useState(null);
-  const [loadingIndex, setLoadingIndex] = useState(0);
-  const [successMsg, setSuccessMsg] = useState('');
-  const [isProcessingDownload, setIsProcessingDownload] = useState(false);
-  const [logoClicks, setLogoClicks] = useState(0);
-  const [fetchClicks, setFetchClicks] = useState(0);
-  const [easterEggMsg, setEasterEggMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState(LOADING_PHRASES[0]);
+  const [selectedQuality, setSelectedQuality] = useState('');
+  const [errorText, setErrorText] = useState("");
+  const [isInputError, setIsInputError] = useState(false);
 
-  // Spam Click Easter Egg Timer
-  useEffect(() => {
-    if (fetchClicks >= 5) {
-      setEasterEggMsg("Zor zor se bolke sabko scheme bata de.");
-      setFetchClicks(0);
-      setTimeout(() => setEasterEggMsg(''), 4000);
+  // Clipboard Paste Helper
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) setUrl(text);
+    } catch (err) {
+      console.error('Failed to read clipboard contents: ', err);
     }
-    const timer = setTimeout(() => setFetchClicks(0), 1500);
-    return () => clearTimeout(timer);
-  }, [fetchClicks]);
+  };
 
-  // Secret Logo Easter Egg Timer
-  useEffect(() => {
-    if (logoClicks >= 5) {
-      setEasterEggMsg("21 din mein bandwidth double.");
-      setLogoClicks(0);
-      setTimeout(() => setEasterEggMsg(''), 4000);
-    }
-    const timer = setTimeout(() => setLogoClicks(0), 2000);
-    return () => clearTimeout(timer);
-  }, [logoClicks]);
-
-  // Subtle Cinematic Thud Audio for Easter Eggs
-  useEffect(() => {
-    if (easterEggMsg) {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(60, ctx.currentTime); // Deep bass pitch
-        osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        gain.gain.setValueAtTime(0.5, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.5);
-      } catch (e) { /* Ignore if AudioContext is blocked */ }
-    }
-  }, [easterEggMsg]);
-
-  // Cinematic rotating dialogues timer
+  // Rotating Loading Text Effect
   useEffect(() => {
     let interval;
-    if (status === 'loading') {
+    if (loading) {
+      let i = 0;
       interval = setInterval(() => {
-        setLoadingIndex((prev) => (prev + 1) % loadingDialogues.length);
-      }, 2500);
+        i = (i + 1) % LOADING_PHRASES.length;
+        setLoadingText(LOADING_PHRASES[i]);
+      }, 2500); // Rotate every 2.5 seconds
     } else {
-      setLoadingIndex(0);
+      setLoadingText(LOADING_PHRASES[0]);
     }
     return () => clearInterval(interval);
-  }, [status]);
+  }, [loading]);
 
-  // Automated Platform Detection via Regex
-  useEffect(() => {
-    const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
-
-    if (ytRegex.test(url)) {
-      setPlatform('youtube');
-    } else {
-      setPlatform('none');
-    }
-  }, [url]);
-
-  const handleFetch = async (e) => {
-    e.preventDefault();
-    if (status === 'loading') return;
+  const handleFetchVideo = async (e) => {
+    if (e) e.preventDefault();
     
     setVideoData(null);
-    setApiError('');
-    setValidationError('');
+
+    if (!url.trim()) {
+      setIsInputError(true);
+      setErrorText("INKE HAATH MEIN SONE KA KATORA DO, PHIR BHI BHEEKH MANGENGE! LINK DAAL!");
+      return;
+    }
     
     const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
-
-    // 1. Strict validation: Reject non-YouTube URLs immediately to protect API quota
     if (!ytRegex.test(url)) {
-      setValidationError('Ye kaam ka link nahi hai.');
+      setIsInputError(true);
+      setUrl(''); 
+      setErrorText("MAIN YAHAN KYA MACCHI BECHNE BAITHA HOON? YOUTUBE LINK DAAL!");
       return;
     }
 
-    // 2. Isolate the 11-character Video ID from the sanitized string
     const videoId = getYouTubeId(url);
-
     if (!videoId) {
-      setValidationError('YouTube wala bhejo.');
+      setIsInputError(true);
+      setUrl('');
+      setErrorText("MAIN YAHAN KYA MACCHI CHETA BAITHA HOON? YOUTUBE LINK DAAL!");
       return;
     }
 
-    setValidationError('');
-    setApiError('');
-    setStatus('loading');
+    setIsInputError(false);
+    setLoading(true);
     
     try {
       const API_HOST = import.meta.env.VITE_RAPIDAPI_HOST;
@@ -206,7 +145,6 @@ export default function VideoDownloader() {
         throw new Error("Missing API Credentials. Please check your .env file.");
       }
 
-      // Explicitly target the validated /v2/video/details endpoint path
       const requestUrl = `https://${API_HOST}/v2/video/details?videoId=${videoId}&urlAccess=normal&videos=auto&audios=auto`;
 
       const response = await fetch(requestUrl, {
@@ -217,347 +155,469 @@ export default function VideoDownloader() {
         }
       });
 
-      // Extract the remaining requests from the response headers
-      const requestsLimit = response.headers.get('x-ratelimit-requests-limit');
-      const requestsRemaining = response.headers.get('x-ratelimit-requests-remaining');
-      console.log(`API Plan Quota: ${requestsLimit} total requests.`);
-      console.log(`API Requests Remaining: ${requestsRemaining} left!`);
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error('Aaj kaafi bhaag-daud ho gayi...');
-        }
-        throw new Error('Ye wala source cooperate nahi kar raha.');
-      }
+      if (!response.ok) throw new Error('Network response was not ok');
 
       const data = await response.json();
-      console.log('API Response data:', data); // Inspect this in your browser console to see what the API returns!
       
-      // Sort videos highest to lowest quality
       if (data?.videos?.items) {
         data.videos.items.sort((a, b) => (parseInt(b.quality) || 0) - (parseInt(a.quality) || 0));
-      }
-
-      setVideoData(data);
-      
-      // Automatically pre-select the first available stream download quality link
-      if (data?.videos?.items?.length > 0) {
         setSelectedQuality(data.videos.items[0].url);
       }
 
-      setStatus('success');
-      
-      setSuccessMsg(successDialogues[Math.floor(Math.random() * successDialogues.length)]);
-      setTimeout(() => setSuccessMsg(''), 4000);
-    } catch (error) {
-      setStatus('error');
-      setApiError(error.message || 'Connection toot gaya.');
+      setVideoData(data);
+    } catch (err) {
+      console.error("Fetch failed:", err);
+      setIsInputError(true);
+      setErrorText("API ERROR: THODA WAIT KAR LE BHAI!");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReset = () => {
-    setUrl('');
-    setStatus('idle');
-    setValidationError('');
-    setApiError('');
-    setVideoData(null);
-    setSelectedQuality('');
-    setSuccessMsg('');
-    setIsProcessingDownload(false);
-  };
-
   const handleInitiateDownload = () => {
-    setIsProcessingDownload(true);
-    setTimeout(async () => {
-      await triggerPhysicalDownload(selectedQuality, videoData?.title);
-      setIsProcessingDownload(false);
-    }, 2000);
+    triggerPhysicalDownload(selectedQuality, videoData?.title);
   };
 
   const selectedVideoObj = videoData?.videos?.items?.find(v => v.url === selectedQuality);
-  const sizeDisplay = formatSize(selectedVideoObj?.sizeText || selectedVideoObj?.size || selectedVideoObj?.contentLength);
+  const sizeDisplay = formatSize(selectedVideoObj?.sizeText || selectedVideoObj?.size || selectedVideoObj?.contentLength) || '79.6MB';
 
   return (
-    <div className="min-h-screen bg-stone-950 flex items-center justify-center p-4 font-sans relative overflow-hidden text-stone-200">
+    <div className="w-full min-h-screen wall-texture text-amber-100 flex flex-col justify-between items-center p-4 md:p-6 pb-32 md:pb-28 select-none overflow-x-hidden font-sans relative">
       
-      {/* Gritty Textures & CRT Atmosphere */}
-      <div className="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] pointer-events-none z-0"></div>
-      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none mix-blend-overlay z-0"></div>
+      {/* GLOBAL BOLLYWOOD COLOR GRADING */}
+      <div className="fixed inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[#2b1000]/10 to-[#120500]/80 mix-blend-multiply z-50"></div>
+      <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.8)] z-50"></div>
 
-      {/* Chaotic Tube Lighting */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-yellow-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-red-900/15 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="absolute top-[40%] left-[60%] w-[20rem] h-[20rem] bg-emerald-900/10 rounded-full blur-[100px] pointer-events-none z-0" />
+      {/* GLOBAL CINEMATIC TEXTURES */}
+      <div className="film-grain"></div>
+      <div className="scanlines"></div>
+      <div className="scratches"></div>
+      <div className="smoke-overlay"></div>
+      
+      {/* CINEMATIC HANGING LAMP LIGHTING */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_-10%,transparent_0%,rgba(0,0,0,0.88)_65%,rgba(0,0,0,0.99)_100%)] z-0"></div>
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[90vw] md:w-[60vw] h-[50vh] bg-[radial-gradient(circle,rgba(212,175,55,0.18)_0%,transparent_70%)] blur-[80px] pointer-events-none z-0 mix-blend-overlay"></div>
 
-      {/* Massive Cinematic Watermarks */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 flex flex-col justify-between p-10 opacity-[0.02] font-black text-8xl md:text-[14rem] leading-none text-stone-100 uppercase mix-blend-overlay select-none">
-        <span className="transform -rotate-12 translate-x-[-10%]">Baburao</span>
-        <span className="transform rotate-6 translate-x-[20%] text-right text-stone-400">Raju</span>
-        <span className="transform -rotate-6 translate-x-[-5%] text-center">Shyam</span>
+      {/* BACKGROUND STORYTELLING: FADED POSTERS */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.12] mix-blend-color-dodge">
+        {/* Baburao Poster */}
+        <div className="absolute top-[5%] left-[2%] w-72 h-[30rem] border-[12px] border-black/80 bg-[#1a1a1a] -rotate-3 flex flex-col items-center justify-center shadow-[0_0_80px_rgba(0,0,0,1)]">
+           <div className="text-9xl mb-6 grayscale filter contrast-200 blur-[1px]">👓</div>
+           <div className="font-black text-5xl text-black bollywood-text tracking-tighter mix-blend-overlay">BABURAO</div>
+        </div>
+        {/* Raju Poster */}
+        <div className="absolute top-[25%] right-[3%] w-64 h-[25rem] border-8 border-black/60 bg-[#222] rotate-6 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(0,0,0,1)]">
+           <div className="text-8xl mb-4 grayscale filter contrast-[2.5] blur-[1px]">👔</div>
+           <div className="font-black text-4xl text-black bollywood-text tracking-widest mix-blend-overlay">RAJU</div>
+        </div>
+        {/* Shyam Poster */}
+        <div className="absolute -bottom-[5%] left-[25%] w-80 h-[25rem] border-[10px] border-black/70 bg-[#151515] -rotate-12 flex flex-col items-center justify-start pt-10 shadow-[0_0_90px_rgba(0,0,0,1)]">
+           <div className="text-8xl mb-4 grayscale filter contrast-[3] blur-[2px]">🧑🏽‍🦱</div>
+           <div className="font-black text-5xl text-black bollywood-text tracking-widest mix-blend-overlay">SHYAM</div>
+        </div>
       </div>
 
-      <div className="bg-stone-900/90 backdrop-blur-md max-w-2xl w-full rounded-sm shadow-[10px_10px_0px_rgba(0,0,0,1)] border-2 border-stone-700 p-6 sm:p-10 relative z-10">
-        
-        {/* Hero Title Area */}
-        <div className="text-center space-y-3 relative">
-          <div className="absolute -top-4 -right-2 sm:-right-8 rotate-12 border-2 border-red-600 text-red-600 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-sm opacity-80 pointer-events-none tracking-widest shadow-sm">
-            ILLEGAL<br/>APPROVED
-          </div>
-          <p className="text-stone-500 font-mono text-[10px] sm:text-xs uppercase tracking-[0.3em]">
-            International Media Recovery Dept.
-          </p>
-          <h1 
-            onClick={() => setLogoClicks(prev => prev + 1)}
-            className="text-5xl sm:text-6xl font-black text-yellow-500 tracking-tighter uppercase drop-shadow-[0_0_15px_rgba(234,179,8,0.2)] cursor-pointer select-none transition-transform active:scale-95"
-            style={{ textShadow: '3px 3px 0px #7f1d1d, -1px -1px 0px #1c1917' }}
-          >
-            Hera Pheri
-          </h1>
-          <p className="text-stone-400 font-medium text-sm sm:text-base italic">
-            "Professional Arrangements Since 2000"
-          </p>
+      {/* LEFT SIDE PROPS (DESKTOP) */}
+      <div className="hidden xl:flex fixed left-0 top-0 bottom-0 w-80 pointer-events-none z-10 flex-col justify-between p-8">
+        {/* Hanging Wires - Cinematic Foreground Blur */}
+        <svg className="absolute top-0 left-12 w-24 h-[60vh] opacity-40 drop-shadow-2xl blur-[2px] z-50" preserveAspectRatio="none">
+           <path d="M10,0 C30,100 -20,250 20,400 C40,550 0,700 10,800" stroke="#0a0a0a" strokeWidth="6" fill="none"/>
+           <path d="M30,0 C10,150 40,300 10,450" stroke="#111" strokeWidth="4" fill="none"/>
+        </svg>
+
+        {/* CRT Wrapper - Environment & Desk */}
+        <div className="relative mt-24">
+           {/* Ambient Wall Glow Behind Monitor */}
+           <div className="absolute -inset-10 bg-[radial-gradient(ellipse_at_center,rgba(74,246,38,0.03)_0%,transparent_70%)] animate-pulse pointer-events-none z-0"></div>
+           
+           {/* Dirty Desk Surface */}
+           <div className="absolute -bottom-6 -left-12 w-[140%] h-12 bg-gradient-to-b from-[#1a120c] to-[#0a0705] border-t-[3px] border-[#3a271d] shadow-[0_15px_30px_rgba(0,0,0,0.95)] z-10 skew-x-[-12deg] pointer-events-auto">
+              {/* Desk Scratches & Chai Stain */}
+              <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' fill=\'%23000\'/%3E%3C/svg%3E")'}}></div>
+              <div className="absolute top-2 right-6 w-8 h-4 rounded-[100%] border-2 border-black/60 bg-[#2b170a]/30 mix-blend-multiply rotate-12 blur-[0.5px]"></div>
+           </div>
+
+           {/* Cigarette Smoke Rising */}
+           <div className="absolute -bottom-8 left-0 w-24 h-40 bg-white/5 blur-[12px] animate-[driftSmoke_10s_infinite_ease-in-out] pointer-events-none z-30 mix-blend-screen opacity-50"></div>
+
+           {/* System Terminal - Ultra Realistic CRT */}
+           <div className="crt-frame relative pointer-events-auto max-w-[260px] transform hover:rotate-1 transition-transform duration-500 cursor-crosshair z-20 drop-shadow-[0_20px_25px_rgba(0,0,0,0.9)]">
+             {/* Sticky Note */}
+             <div className="absolute -right-3 top-8 bg-yellow-200/90 text-zinc-900 p-2 text-[7px] font-black font-sans rotate-[12deg] shadow-[2px_4px_8px_rgba(0,0,0,0.7)] border-t border-l border-yellow-100 z-50 uppercase tracking-tighter">
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-2 bg-red-600/40 rotate-6 shadow-sm blur-[0.5px]"></div>
+                Kabira Number<br/><span className="text-red-700">DO NOT LIFT</span><br/>Cross Conn.
+             </div>
+
+             {/* Frame details - Rust, dirt, scratches */}
+             <div className="absolute inset-0 pointer-events-none opacity-50 mix-blend-color-burn" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.15\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' fill=\'%238b4513\'/%3E%3C/svg%3E")'}}></div>
+             <div className="absolute inset-0 pointer-events-none border-[3px] border-white/5 rounded-lg mix-blend-overlay"></div>
+             
+             {/* Old Buttons & Knobs */}
+             <div className="absolute bottom-2 left-4 flex gap-3 z-30">
+               <div className="w-4 h-1 bg-zinc-800 border-b border-zinc-500/30 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.8)]"></div>
+               <div className="w-4 h-1 bg-zinc-800 border-b border-zinc-500/30 rounded-sm shadow-[0_2px_4px_rgba(0,0,0,0.8)]"></div>
+             </div>
+
+             <div className="absolute top-2 left-3 flex gap-2 z-20 opacity-80">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-900 border border-black shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500 border border-black shadow-[0_0_8px_rgba(0,255,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.6)] animate-pulse"></div>
+             </div>
+             
+             <div className="crt-screen-container m-3 mt-6 mb-8 relative z-10">
+                {/* Realistic Screen Imperfections */}
+                <div className="absolute inset-0 tube-light-glare"></div>
+                <div className="absolute inset-0 glass-scratch"></div>
+                <div className="burn-in-text">SYNDICATE</div>
+                
+                {/* Dead Pixels */}
+                <div className="absolute top-[20%] left-[45%] w-[1px] h-[1px] bg-black z-40 opacity-90"></div>
+                <div className="absolute top-[65%] right-[25%] w-[1.5px] h-[1.5px] bg-black z-40 opacity-80"></div>
+                <div className="absolute bottom-[15%] left-[10%] w-[1px] h-[1px] bg-red-900 z-40 opacity-60"></div>
+
+                <div className="crt-scanline-bar"></div>
+                <div className="crt-dirt"></div>
+                
+                <div className="crt-screen font-mono text-[11px] leading-tight">
+                   <div className="text-[9px] text-green-700/80 mb-2 border-b border-green-900/50 pb-1 crt-text uppercase tracking-widest flex justify-between">
+                      <span>MEDIA_RECOVERY_UNIT.exe</span>
+                      <span className="animate-[pulse_2s_infinite]">MEM: 64K</span>
+                   </div>
+                   <div className="animate-crt-flicker space-y-2 mt-2">
+                      <p className="crt-text"><span className="opacity-60">[02:14:03]</span> {'>'} RAJU SETTING LAGA RAHA <span className="ml-1 text-green-300 drop-shadow-[0_0_5px_rgba(74,246,38,1)]">[✔]</span></p>
+                      <p className="crt-text"><span className="opacity-60">[02:14:18]</span> {'>'} SHYAM PAISA KA JUGAAD... <span className="ml-1 inline-block animate-[spin_3s_linear_infinite] text-green-400">⟳</span></p>
+                      <p className="crt-text animate-crt"><span className="opacity-60">[02:14:45]</span> {'>'} BABURAO TENSION NA LE... <span className="ml-1 animate-pulse">[OK]</span></p>
+                      <div className="crt-text-red font-bold mt-3 text-[11px] border-t border-red-900/50 pt-2 bg-red-950/20 shadow-[0_0_10px_rgba(255,0,0,0.1)] relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(255,0,0,0.05)_2px,rgba(255,0,0,0.05)_4px)]"></div>
+                        <p className="animate-pulse flex items-center gap-1 relative z-10"><span className="text-[12px]">⚠</span> {'>'} ERR: INTERNET DHOKA DE RAHA HAI</p>
+                        <p className="text-[9px] mt-1 opacity-90 relative z-10"><span className="opacity-70">[02:15:12]</span> {'>'} POLICE STATION KE PAAS NETWORK... UNSTABLE</p>
+                      </div>
+                      <p className="crt-text mt-1"><span className="opacity-60">[SYS]</span> _<span className="animate-pulse inline-block w-1.5 h-2.5 bg-green-500 translate-y-0.5 ml-0.5"></span></p>
+                   </div>
+                </div>
+             </div>
+             
+             {/* Frame branding */}
+             <div className="absolute bottom-1.5 right-4 text-[6px] font-sans font-black text-zinc-500/50 uppercase tracking-widest drop-shadow-sm flex items-center gap-1">
+                <div className="w-1 h-1 rounded-full bg-zinc-600/50"></div>
+                ★ JAHAN SETTING, WAHAN HUM ★
+             </div>
+           </div>
         </div>
 
-        {/* Input Form */}
-        <form onSubmit={handleFetch} className="mt-10">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                {platform === 'youtube' ? (
-                  <Youtube className="w-6 h-6 text-red-600 transition-all duration-300 scale-110 drop-shadow-[0_0_8px_rgba(220,38,38,0.6)]" />
-                ) : (
-                  <LinkIcon className="w-5 h-5 text-stone-500 transition-all duration-300" />
-                )}
-              </div>
-              
-              <input
-                type="url"
-                required
-                placeholder="Link bhejo. Baaki hum dekh lenge..."
-                className={`block w-full pl-12 pr-4 py-4 border-2 ${validationError ? 'border-red-500/50 focus:border-red-500 bg-red-950/20 text-red-200' : 'border-stone-700 focus:border-yellow-500 bg-stone-950/50 text-emerald-400 focus:ring-1 focus:ring-yellow-500/50'} rounded-none placeholder:text-stone-600 transition-all text-sm sm:text-base outline-none font-mono shadow-inner`}
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  if (validationError) setValidationError('');
-                }}
-                disabled={status === 'loading'}
-              />
-            </div>
-            
-            <button
-              type="submit"
-              onClick={() => setFetchClicks(prev => prev + 1)}
-              className={`flex items-center justify-center gap-2 bg-red-700 hover:bg-red-600 text-yellow-50 px-8 py-4 rounded-none font-bold uppercase tracking-wider border-2 border-stone-900 transition-all shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-y-1 active:translate-x-1 active:shadow-none ${status === 'loading' ? 'opacity-60 cursor-not-allowed' : ''}`}
-            >
-              {status === 'loading' ? (
-                <div className="w-5 h-5 border-2 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin" />
-              ) : (
-                <Download className="w-5 h-5" />
-              )}
-              {status === 'loading' ? 'Ruko zara...' : 'Karwa Do'}
-            </button>
+        {/* Old Telephone */}
+        <div className="relative mt-auto mb-16 ml-4 opacity-[0.35] drop-shadow-[2px_10px_10px_rgba(0,0,0,1)] mix-blend-luminosity rotate-[-12deg] group hover:opacity-80 transition-opacity">
+           <div className="text-8xl filter sepia contrast-[1.5]">☎️</div>
+           <div className="absolute -bottom-2 right-0 text-[10px] bg-[#e3d2a6] text-black font-bold px-1 rotate-12 border border-black shadow-sm">KABIRA</div>
+        </div>
+      </div>
+      
+      {/* RIGHT SIDE PROPS (DESKTOP) */}
+      <div className="hidden xl:flex fixed right-0 top-0 bottom-0 w-80 pointer-events-none z-10 flex-col items-end p-8 gap-8">
+        {/* Warning Notice */}
+        <div className="paper-texture text-red-950 p-4 w-52 rotate-3 shadow-[4px_4px_10px_rgba(0,0,0,0.8)] pointer-events-auto border border-red-900/30 mt-10">
+           <div className="absolute top-[-8px] left-1/2 -translate-x-1/2 w-6 h-6 bg-amber-600 rounded-full mix-blend-multiply opacity-90 shadow-md flex items-center justify-center text-[10px]">📌</div>
+           <div className="font-black text-lg border-b-2 border-red-900/50 pb-1 mb-2 text-center uppercase tracking-tighter">Warning!</div>
+           <div className="text-[11px] font-bold leading-tight font-mono space-y-2">
+              <p>1. BILKUL RIKS NAHI DENE KA.</p>
+              <p>2. NO OUTSIDE CHAI ALLOWED.</p>
+              <p>3. RENT: 3 MONTHS PENDING.</p>
+           </div>
+        </div>
+
+        {/* Polaroid Missing Sign */}
+        <div className="bg-[#e4dcc7] p-2 pb-8 w-36 shadow-[5px_10px_20px_rgba(0,0,0,0.9)] rotate-[-6deg] filter sepia-[0.4] pointer-events-auto border border-zinc-400/50 mt-auto mb-20 relative hover:rotate-0 transition-transform">
+           <div className="absolute top-[-10px] right-2 w-8 h-4 bg-[#d0c6a8] shadow-sm rotate-12 opacity-80 mix-blend-multiply"></div> {/* Tape */}
+           <div className="w-full aspect-square bg-[#111] flex items-center justify-center overflow-hidden border border-zinc-500/50 shadow-inner">
+             <div className="text-5xl opacity-40 grayscale blur-[1px]">🤦‍♂️</div>
+           </div>
+           <div className="text-center text-[10px] font-black text-zinc-800 mt-2 -rotate-2 uppercase tracking-widest border-b border-zinc-400 inline-block w-full">DO NOT CALL</div>
+        </div>
+      </div>
+
+      {/* 1. HEADER SECTION */}
+      <header className="w-full max-w-4xl text-center mt-8 md:mt-12 mb-4 flex-shrink-0 relative z-30 flex flex-col items-center">
+        
+        {/* FAKE COMPANY SEALS & LABELS */}
+        <div className="absolute top-0 left-2 md:-left-8 border-4 border-red-700 text-red-700 font-black text-[10px] md:text-sm px-2 py-1 -rotate-[15deg] mix-blend-color-dodge md:mix-blend-normal tracking-[0.3em] uppercase rounded-sm shadow-sm z-40 opacity-90 pointer-events-none">
+          CONFIDENTIAL
+        </div>
+        <div className="absolute top-2 right-2 md:-right-8 border border-zinc-500/50 text-zinc-500/80 font-bold text-[8px] md:text-[10px] px-2 py-0.5 rotate-[8deg] tracking-widest uppercase font-mono bg-black/60 z-40 pointer-events-none">
+          MEDIA RECOVERY UNIT
+        </div>
+
+        <div className="border-y-2 border-amber-600/50 px-6 py-1 bg-[#1a1405]/90 text-[10px] md:text-xs font-black tracking-[0.4em] text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.15)] uppercase mb-3 md:mb-5 relative">
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[8px]">★</span>
+          Authorized Arrangement Partner
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px]">★</span>
+        </div>
+
+        {/* MAIN CINEMATIC TITLE */}
+        <div className="relative w-full flex justify-center mt-2 mb-4">
+          <div className="absolute inset-0 bg-yellow-600/20 blur-[60px] -z-10 rounded-[100%]"></div>
+          <h1 className="text-7xl md:text-[150px] leading-[0.85] font-black tracking-tighter uppercase bollywood-title relative z-10 scale-y-110 px-4">
+            Hera Pheri
+          </h1>
+        </div>
+
+        {/* CINEMATIC SUBTITLES */}
+        <div className="bg-red-800 text-white font-black text-sm md:text-3xl px-4 py-1.5 md:px-8 md:py-2 border-4 border-black shadow-[6px_6px_0_#000] -rotate-2 transform hover:rotate-1 transition-transform tracking-wider uppercase z-20 mt-3 md:mt-8 cursor-default">
+          Ye Baburao ka style hai...
+        </div>
+
+        <div className="bg-black/80 border-2 border-zinc-800 px-4 py-2 mt-6 shadow-[0_4px_15px_rgba(0,0,0,0.8)] relative overflow-hidden">
+           <div className="absolute inset-0 warning-stripes opacity-10"></div>
+           <p className="text-xs md:text-lg font-black text-amber-400 tracking-[0.15em] uppercase relative z-10 drop-shadow-md">
+             Video Link Bhejo, 25 Sec Mein Video Download!
+           </p>
+        </div>
+
+        <div className="flex flex-col items-center mt-5 gap-1.5 opacity-80">
+          <div className="flex items-center justify-center gap-3 w-full">
+            <div className="h-[2px] w-8 md:w-16 bg-zinc-700"></div>
+            <p className="text-[9px] md:text-[11px] font-black text-zinc-400 tracking-[0.25em] uppercase text-center">
+              International Media Recovery Services Pvt. Ltd.
+            </p>
+            <div className="h-[2px] w-8 md:w-16 bg-zinc-700"></div>
           </div>
+          <p className="text-[8px] md:text-[10px] font-mono text-zinc-500 tracking-[0.3em] uppercase">
+            Professional Arrangements Since 2000
+          </p>
+        </div>
+      </header>
 
-          {/* Validation Error Banner */}
-          {validationError && (
-            <div className="mt-3 text-sm text-red-400 bg-stone-950 border-l-4 border-red-600 p-3 flex items-center gap-2 animate-in slide-in-from-top-1 fade-in duration-200 shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <span className="font-mono">{validationError}</span>
-            </div>
-          )}
-        </form>
-
-        {/* State-Based UI Rendering */}
-        <div className="mt-8 transition-all duration-500 ease-in-out">
+      {/* 2. CORE CENTRAL CONTAINER */}
+      <main className="w-full max-w-2xl flex-1 flex flex-col justify-center items-center my-8 z-30 relative">
+        
+        {/* CASE FILE CONTAINER */}
+        <div className="w-full bg-[#1c1812] border-[6px] border-zinc-900 rounded-sm shadow-[0_30px_60px_rgba(0,0,0,0.95)] flex flex-col relative group z-40 transform transition-transform duration-700 hover:scale-[1.01]">
           
-          {/* Idle State */}
-          {status === 'idle' && (
-            <div className="text-center py-12 border-2 border-dashed border-stone-700 rounded-none bg-stone-950/30 shadow-inner">
-              <p className="text-sm text-stone-500 font-mono uppercase tracking-widest">
-                Khaali baitha hai system.
-              </p>
-            </div>
-          )}
+          {/* CORNER ACCENTS */}
+          <div className="absolute -top-3 -left-3 w-6 h-6 border-t-4 border-l-4 border-amber-500 z-50 pointer-events-none"></div>
+          <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-4 border-r-4 border-amber-500 z-50 pointer-events-none"></div>
 
-          {/* Cinematic Loading Skeleton */}
-          {status === 'loading' && (
-            <div className="flex flex-col gap-6 p-6 border-2 border-stone-700 rounded-none bg-stone-900/50 relative overflow-hidden shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+          {/* CAUTION TAPE HEADER */}
+          <div className="h-6 w-full warning-stripes border-b-[6px] border-zinc-900 relative">
+            <div className="absolute top-0 right-4 h-full bg-black px-4 flex items-center border-x-2 border-zinc-900">
+               <div className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_red]"></div>
+               <span className="text-[10px] text-red-500 font-black ml-2 tracking-widest uppercase">REC</span>
+            </div>
+          </div>
+          
+          <div className="p-6 md:p-8 flex flex-col gap-6">
+          
+          {/* THE CONTROL FORM ROW */}
+          <form onSubmit={handleFetchVideo} className="flex flex-col w-full flex-shrink-0 bg-black/40 p-4 md:p-6 border-2 border-zinc-800 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] relative gap-4">
+            <div className="flex flex-col md:flex-row gap-4 w-full items-stretch md:items-center">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    if (isInputError) {
+                      setIsInputError(false);
+                      setErrorText("");
+                    }
+                  }}
+                  placeholder="KOI RISK NAHI LENE KA... CHAL LINK DAAL!"
+                  className={`w-full p-5 md:p-6 pr-24 bg-[#0a0a0a] border-2 text-base md:text-2xl font-black outline-none shadow-[inset_0_4px_15px_rgba(0,0,0,1)] tracking-wide transition-all duration-300 focus:scale-[1.01] placeholder:uppercase placeholder:text-zinc-600 ${
+                    isInputError
+                      ? 'border-red-600 text-red-500 bg-red-950/20 focus:border-red-500 animate-shake'
+                      : 'border-zinc-700 text-amber-500 focus:border-amber-500 focus:bg-[#111] focus:shadow-[0_0_15px_rgba(245,158,11,0.2),inset_0_4px_15px_rgba(0,0,0,1)]'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={handlePaste}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs md:text-sm font-black uppercase text-black bg-amber-500 hover:bg-amber-400 px-4 py-3 rounded-sm transition-all border-2 border-black shadow-[2px_2px_0_#000] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#000] active:translate-y-[2px] active:shadow-none"
+                  title="Paste from clipboard"
+                >
+                  Paste
+                </button>
+              </div>
               
-              {/* Rotating Dialogue */}
-              <div className="flex items-center justify-center py-2 h-10">
-                <p key={loadingIndex} className="text-lg font-mono font-bold text-yellow-500 animate-in fade-in zoom-in-95 duration-700 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]">
-                  {loadingDialogues[loadingIndex]}
-                </p>
-              </div>
-
-              <div className="animate-pulse flex flex-col sm:flex-row gap-5 opacity-50">
-                <div className="w-full sm:w-48 h-32 bg-stone-800 border border-stone-700 rounded-sm flex-shrink-0"></div>
-                <div className="flex-1 space-y-4 py-2 w-full">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-stone-800 border border-stone-700 rounded-none w-4/5"></div>
-                    <div className="h-4 bg-stone-800 border border-stone-700 rounded-none w-3/5"></div>
-                  </div>
-                  <div className="h-3 bg-stone-800 border border-stone-700 rounded-none w-1/4 mt-4"></div>
-                  <div className="flex gap-2 pt-2">
-                    <div className="h-10 bg-stone-800 border border-stone-700 rounded-none w-32"></div>
-                    <div className="h-10 bg-stone-800 border border-stone-700 rounded-none w-32"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* API Error State */}
-          {status === 'error' && (
-            <div className="flex flex-col items-center justify-center py-10 px-5 border-2 border-red-900/50 rounded-none bg-stone-950/50 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-              <AlertCircle className="w-10 h-10 text-red-500 mb-3 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-              <p className="text-lg text-red-200 font-bold text-center max-w-sm font-mono">
-                {apiError}
-              </p>
               <button
-                onClick={handleReset}
-                className="mt-6 px-6 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold uppercase text-sm tracking-wider rounded-none border-2 border-stone-600 transition-colors shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:translate-x-0.5 active:shadow-none"
+                type="submit"
+                disabled={loading}
+                className="cinematic-btn bg-gradient-to-b from-red-600 via-red-700 to-red-900 text-white font-black text-sm md:text-base px-6 py-4 rounded-sm shadow-[0_6px_0_rgb(69,10,10),0_10px_15px_rgba(0,0,0,0.6)] active:translate-y-[6px] active:shadow-[0_0_0_rgb(69,10,10)] transition-all flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:active:translate-y-0 disabled:active:shadow-[0_6px_0_rgb(69,10,10)] uppercase tracking-[0.15em] border-[3px] border-black relative overflow-hidden group/btn flex-shrink-0 w-full md:w-auto"
               >
-                Naya Link Do
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+                <span className="relative z-10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">Setting Lagao</span>
               </button>
             </div>
-          )}
-
-          {/* Results State */}
-          {status === 'success' && (
-            <div className="flex flex-col sm:flex-row gap-6 p-6 border-2 border-stone-700 rounded-none bg-stone-900/60 backdrop-blur-md shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-              {/* Thumbnail */}
-              <div className="relative w-full sm:w-56 h-36 rounded-sm overflow-hidden bg-black flex-shrink-0 group cursor-pointer border-2 border-stone-800 shadow-inner">
-                <img
-                  src={
-                    videoData?.thumbnail || 
-                    videoData?.video?.thumbnail || 
-                    `https://img.youtube.com/vi/${videoData?.id || 'sL_KBnYB17I'}/maxresdefault.jpg`
-                  }
-                  alt="Video thumbnail"
-                  className="object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-transform duration-700 scale-105 group-hover:scale-110"
-                  onError={(e) => {
-                    // Ultimate fallback if maxresdefault is blocked or missing
-                    e.target.src = `https://img.youtube.com/vi/${videoData?.id}/hqdefault.jpg`;
-                  }}
-                />
-                <PlayCircle className="absolute inset-0 m-auto text-white/90 w-12 h-12 group-hover:scale-110 transition-transform duration-500 drop-shadow-2xl" />
-                <span className="absolute bottom-2 right-2 bg-black/90 text-red-500 text-xs font-bold font-mono px-2 py-1 rounded-none border border-red-900/50 shadow-sm">
-                  {formatDuration(
-                    videoData?.lengthSeconds || 
-                    videoData?.duration || 
-                    videoData?.video?.lengthSeconds
-                  )}
-                </span>
+            
+            {isInputError && errorText && (
+              <div className="w-full bg-red-950 border-2 border-red-700 text-red-500 font-black tracking-[0.1em] text-xs md:text-sm uppercase p-3 text-center shadow-[0_0_15px_rgba(220,38,38,0.3)] animate-shake relative overflow-hidden mt-1">
+                <div className="absolute inset-0 warning-stripes opacity-10"></div>
+                <span className="relative z-10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">⚠️ {errorText}</span>
               </div>
+            )}
+          </form>
 
-              {/* Details & Actions */}
-              <div className="flex flex-col justify-between flex-1">
+          {/* RENDERING WRAPPER LAYER */}
+          <div className="flex-1 w-full flex flex-col items-center justify-center min-h-[260px] relative">
+            {loading && (
+              <div className="w-full h-full flex flex-col items-center justify-center p-8 relative overflow-hidden bg-[#050505] border-2 border-zinc-800 shadow-[inset_0_0_40px_rgba(0,0,0,1)]">
+                {/* Fake Cinematic Rotating Fan Shadows */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] aspect-square opacity-20 pointer-events-none mix-blend-overlay">
+                  <div className="w-full h-full bg-[conic-gradient(from_0deg,transparent_0deg,rgba(0,0,0,1)_45deg,transparent_90deg,transparent_180deg,rgba(0,0,0,1)_225deg,transparent_270deg)] animate-fan rounded-full blur-[2px]"></div>
+                </div>
+                
+                {/* Fake Server Activity Rack */}
+                <div className="flex gap-4 mb-8 bg-black p-3 border-2 border-zinc-900 rounded-sm z-10 shadow-lg">
+                   <div className="flex flex-col gap-2 items-center">
+                     <div className="w-4 h-4 rounded-full bg-red-600 animate-pulse shadow-[0_0_15px_red]"></div>
+                     <span className="text-[8px] text-zinc-500 font-mono">PWR</span>
+                   </div>
+                   <div className="flex flex-col gap-2 items-center">
+                     <div className="w-4 h-4 rounded-full bg-amber-500 animate-[crtBlink_0.5s_infinite] shadow-[0_0_10px_orange]"></div>
+                     <span className="text-[8px] text-zinc-500 font-mono">NET</span>
+                   </div>
+                   <div className="flex flex-col gap-2 items-center">
+                     <div className="w-4 h-4 rounded-full bg-green-500 animate-[crtBlink_0.2s_infinite] shadow-[0_0_15px_green]"></div>
+                     <span className="text-[8px] text-zinc-500 font-mono">DAT</span>
+                   </div>
+                </div>
+
+                <div className="bg-black/80 border border-amber-900/50 p-4 md:p-6 relative z-10 w-full text-center shadow-[0_0_20px_rgba(245,158,11,0.1)]">
+                   <div className="text-[10px] text-amber-600/70 mb-2 font-mono tracking-widest uppercase animate-crt">Establishing Secure Arrangement...</div>
+                   <p className="text-amber-400 font-black tracking-widest uppercase text-base md:text-xl transition-all duration-500">{loadingText}</p>
+                </div>
+              </div>
+            )}
+
+            {!loading && !videoData && (
+              <div className="w-full h-full border-2 border-dashed border-zinc-700/80 bg-black/20 p-8 text-center text-zinc-500 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
+                <div className="absolute -right-8 -bottom-8 text-9xl opacity-10 rotate-12 grayscale">😭</div>
+                <div className="text-6xl mb-2 drop-shadow-lg filter grayscale animate-memeFloat">🤦‍♂️</div>
                 <div>
-                  <h3 className="text-xl font-bold text-stone-100 leading-snug line-clamp-2 drop-shadow-sm" title={videoData?.title}>
-                    {videoData?.title || "Video Title"}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400 bg-red-950/50 border border-red-900/50 px-2.5 py-1 rounded-sm">
-                      <Youtube className="w-3.5 h-3.5 text-red-500" />
-                      YouTube
+                  <p className="text-lg md:text-xl font-black tracking-widest text-zinc-400 uppercase">System khaali baitha hai 😭</p>
+                  <p className="text-sm font-bold text-zinc-600 mt-1 uppercase">Abhi tak koi arrangement nahi hua.</p>
+                </div>
+                <div className="border border-red-900 text-red-700 bg-red-950/30 text-[10px] px-2 py-1 uppercase font-black tracking-widest mt-2">
+                  Rule No.1 — Bilkul Riks Nahi Lene Ka.
+                </div>
+              </div>
+            )}
+
+            {!loading && videoData && (
+              <div className="w-full flex flex-col gap-5 items-center animate-slideUp bg-[#e3d5b8] text-zinc-900 border-x-[12px] border-b-[12px] border-[#222] p-4 md:p-6 rounded-b-sm shadow-[inset_0_20px_30px_rgba(0,0,0,0.8)] relative mt-4">
+                
+                {/* FAKE FOLDER TABS & LABELS */}
+                <div className="absolute -top-10 left-0 bg-[#e3d5b8] text-black text-[10px] md:text-xs font-black px-6 py-2 uppercase tracking-widest border-t-[8px] border-x-[8px] border-[#222] rounded-t-lg shadow-[inset_0_10px_10px_rgba(255,255,255,0.4)] z-0">
+                  CONFIDENTIAL CASE FILE
+                </div>
+                
+                {/* RECOVERED STAMP */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl md:text-6xl evidence-stamp -rotate-[25deg] z-20 pointer-events-none opacity-50">
+                  RECOVERED
+                </div>
+
+                <h2 className="w-full text-center text-xl md:text-3xl font-black uppercase tracking-tighter border-b-4 border-zinc-800/20 pb-4 mb-2 text-[#111] drop-shadow-sm">Recovered Media File</h2>
+
+                {/* Left Side: Thumbnail */}
+                <div className="w-full relative z-10 p-2 bg-[#d1c2a3] border border-zinc-400 shadow-inner">
+                  <div className="relative rounded-sm overflow-hidden border-2 border-black shadow-[0_4px_15px_rgba(0,0,0,0.8)] group aspect-video bg-black">
+                    <img
+                      src={videoData?.thumbnail || videoData?.video?.thumbnail || `https://img.youtube.com/vi/${videoData?.id}/maxresdefault.jpg`}
+                      alt="Thumbnail"
+                      onError={(e) => { e.target.src = `https://img.youtube.com/vi/${videoData?.id}/hqdefault.jpg`; }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100 mix-blend-luminosity group-hover:mix-blend-normal"
+                    />
+                    <div className="absolute inset-0 shadow-[inset_0_0_40px_rgba(0,0,0,0.9)] pointer-events-none"></div>
+                    <span className="absolute bottom-2 right-2 bg-amber-500 text-black border border-black px-2 py-0.5 text-xs font-black tracking-widest">
+                      {formatDuration(videoData?.lengthSeconds || videoData?.duration || videoData?.video?.lengthSeconds)}
                     </span>
-                    {videoData?.viewCount && <span className="text-xs text-stone-400 font-mono tracking-wide">• {videoData.viewCount} views</span>}
                   </div>
                 </div>
 
-                <div className="mt-5">
-                  <p className="text-sm font-bold text-stone-400 mb-3 font-mono uppercase tracking-wider">Kitna quality chahiye?</p>
-                  
-                  <div className="flex flex-wrap items-center gap-3">
-                    {/* Quality Selector */}
-                    <div className="relative w-full sm:w-auto">
-                      <select
-                        value={selectedQuality}
-                        onChange={(e) => setSelectedQuality(e.target.value)}
-                        className="w-full appearance-none bg-stone-950 border-2 border-stone-700 text-emerald-400 text-sm font-bold rounded-none pl-4 pr-10 py-3 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 cursor-pointer transition-colors shadow-inner"
-                      >
-                        {videoData?.videos?.items?.length > 0 ? (
-                          videoData.videos.items.map((video, index) => (
-                            <option key={index} value={video.url}>
-                              {video.quality} ({video.extension || 'mp4'})
-                            </option>
-                          ))
-                        ) : (
-                          <option value={selectedQuality}>Default Quality</option>
-                        )}
-                      </select>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-stone-500">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                      </div>
+                {/* Right Side: Operations */}
+                <div className="w-full flex flex-col gap-5 relative z-10">
+                  <div className="bg-black/5 p-3 border-l-4 border-red-700 shadow-sm">
+                     <h3 className="text-sm md:text-lg font-black text-black line-clamp-2 uppercase tracking-tighter leading-tight">{videoData?.title}</h3>
+                  </div>
+
+                  <div className="flex flex-col gap-2 text-xs">
+                    <label className="font-black text-zinc-800 tracking-widest uppercase bg-zinc-300 inline-block w-fit px-2 py-1 shadow-sm border border-zinc-400">KITNA QUALITY CHAHIYE?</label>
+                    <div className="flex flex-wrap gap-2">
+                      {videoData?.videos?.items?.length > 0 ? videoData.videos.items.map((video, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedQuality(video.url)}
+                          className={`tape-button px-4 py-3 font-black text-[11px] md:text-xs uppercase tracking-wider rounded-sm border-2 border-black transition-all active:translate-y-[4px] active:shadow-none ${
+                            selectedQuality === video.url 
+                              ? 'bg-red-600 text-white' 
+                              : 'bg-[#b8a98a] text-black hover:bg-[#a69777]'
+                          }`}
+                        >
+                          {video.quality}
+                        </button>
+                      )) : (
+                        <span className="text-red-700 font-black">NO QUALITY OPTIONS FOUND</span>
+                      )}
                     </div>
-                    
-                    {/* Download Action */}
-                    <button
-                      onClick={handleInitiateDownload}
-                      disabled={!selectedQuality}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-emerald-50 text-sm font-bold uppercase tracking-wider px-8 py-3.5 rounded-none border-2 border-stone-900 transition-all shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <HardDrive className="w-4 h-4 drop-shadow-md" />
-                      Nikaal Do
-                    </button>
                   </div>
 
                   {selectedQuality && (
-                    <p className="text-xs font-bold text-stone-400 tracking-wide mt-4 font-mono animate-in fade-in slide-in-from-bottom-1">
-                      <span className="text-amber-700">{sizeDisplay}</span> lagenge... bol baat pakki karun??
-                    </p>
+                    <div className="w-full bg-yellow-400 border-[4px] border-black p-4 text-center my-2 relative overflow-hidden shadow-[4px_4px_0_#000]">
+                      <div className="absolute inset-0 warning-stripes opacity-20"></div>
+                      <p className="text-black font-black text-base md:text-xl tracking-tighter uppercase relative z-10 drop-shadow-[0_2px_2px_rgba(255,255,255,0.8)]">
+                        <span className="text-red-700 text-2xl md:text-3xl border-b-4 border-red-700/30">{sizeDisplay}</span> LAGENGE... BOL BAAT PAKKI KARUN??
+                      </p>
+                    </div>
                   )}
+
+                  <button 
+                    onClick={handleInitiateDownload}
+                    disabled={!selectedQuality}
+                    className="cinematic-btn w-full bg-gradient-to-b from-zinc-200 to-zinc-400 hover:to-zinc-300 text-black border-[6px] border-black font-black tracking-widest py-5 shadow-[0_8px_0_#000,0_15px_20px_rgba(0,0,0,0.5)] active:translate-y-[8px] active:shadow-none transition-all text-lg md:text-xl uppercase disabled:opacity-50 disabled:active:translate-y-0 disabled:active:shadow-[0_8px_0_#000] relative overflow-hidden group/dl mt-2"
+                  >
+                     <span className="relative z-10 drop-shadow-[0_2px_0_rgba(255,255,255,0.8)]">KHOPDI TOD SAALE KA! (DOWNLOAD)</span>
+                  </button>
                 </div>
+
               </div>
-            </div>
-          )}
-        </div>
-        
-      </div>
+            )}
+          </div>
 
-      {/* Cinematic Success Toast */}
-      {successMsg && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-500">
-          <div className="bg-stone-900 border-2 border-emerald-600 text-emerald-400 px-6 py-3 rounded-none shadow-[6px_6px_0px_rgba(0,0,0,1)] flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.8)]"></div>
-            <span className="font-bold tracking-wide font-mono uppercase">{successMsg}</span>
           </div>
         </div>
-      )}
+      </main>
 
-      {/* Cinematic Processing Overlay */}
-      {isProcessingDownload && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/90 backdrop-blur-sm animate-in fade-in duration-500">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-900/20 rounded-full blur-[80px] animate-pulse pointer-events-none"></div>
-          <div className="text-center space-y-4 relative z-10">
-            <div className="w-12 h-12 border-4 border-stone-800 border-t-yellow-500 rounded-full animate-spin mx-auto mb-6"></div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-100 tracking-tight drop-shadow-sm font-mono uppercase">
-              Andar kaam chal raha hai.
-            </h2>
-            <p className="text-red-400 font-bold text-lg font-mono">
-              Thoda waqt lagega.
-            </p>
-          </div>
+      {/* 3. FOOTER SIGNATURE BAR */}
+      <footer className="w-full text-center flex flex-col items-center justify-center flex-shrink-0 relative z-30 mb-10 md:mb-4 pb-6">
+        <div className="relative inline-block px-8 py-3 bg-[#110a05] border-4 border-[#3e2312] shadow-[0_15px_25px_rgba(0,0,0,0.9),inset_0_0_20px_rgba(0,0,0,0.8)] transform -rotate-2 group pointer-events-auto mt-4">
+           {/* Dusty Scratches on the signboard */}
+           <div className="absolute inset-0 pointer-events-none opacity-60 mix-blend-color-burn" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' fill=\'%238b4513\'/%3E%3C/svg%3E")'}}></div>
+           <div className="absolute inset-0 pointer-events-none glass-scratch opacity-60"></div>
+           
+           {/* Tube light glow effect text */}
+           <div className="text-xl md:text-2xl font-black mohit-signboard signboard-flicker relative z-10 tracking-[0.2em] uppercase">
+              A Mohit Productions
+           </div>
+           
+           {/* Hanging wires */}
+           <div className="absolute -top-8 left-4 w-1.5 h-8 bg-gradient-to-r from-zinc-900 to-zinc-600 shadow-[2px_2px_5px_rgba(0,0,0,0.8)]"></div>
+           <div className="absolute -top-10 right-6 w-1.5 h-10 bg-gradient-to-r from-zinc-900 to-zinc-600 shadow-[2px_2px_5px_rgba(0,0,0,0.8)]"></div>
         </div>
-      )}
+      </footer>
+      
+      {/* BOTTOM DESK EDGE & PROPS */}
+      <div className="fixed bottom-0 left-0 right-0 h-24 md:h-32 pointer-events-none z-20 flex justify-between items-end px-4 md:px-16 overflow-hidden">
+         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0502] via-[#1a0f05]/95 to-transparent border-t-2 border-[#3e2723]/40 shadow-[0_-15px_40px_rgba(0,0,0,0.9)]"></div>
+         
+         {/* Approval Stamp */}
+         <div className="relative z-30 mb-6 md:mb-10 ml-2 md:ml-20 text-red-700/60 font-black text-2xl md:text-4xl border-[4px] border-red-700/60 px-3 py-1 md:px-4 md:py-2 -rotate-[15deg] mix-blend-multiply rounded-sm bollywood-text tracking-[0.2em] pointer-events-auto">
+            ARRANGED
+         </div>
 
-      {/* Cinematic Easter Egg Alert */}
-      {easterEggMsg && (
-        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-8 fade-in duration-500">
-          <div className="bg-stone-900 border-2 border-red-600 text-red-400 px-8 py-4 rounded-none shadow-[8px_8px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-1">
-            <span className="text-stone-500 font-mono text-[10px] font-black uppercase tracking-[0.25em] opacity-80">Classified</span>
-            <span className="font-bold tracking-wider text-lg whitespace-nowrap font-mono">{easterEggMsg}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center opacity-40 hover:opacity-100 transition-opacity duration-700 z-10 w-full pointer-events-none">
-        <p className="text-stone-500 font-mono text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em]">
-          Professional arrangements department. <br className="sm:hidden" />
-          <span className="hidden sm:inline"> • </span> Organized chaos since 2000.
-        </p>
+         {/* Chai Glass (Hidden on very small mobile screens) */}
+         <div className="hidden sm:block relative z-30 mb-2 mr-10 md:mr-32 opacity-80 drop-shadow-[0_15px_15px_rgba(0,0,0,1)] mix-blend-luminosity hover:opacity-100 hover:contrast-100 transition-all pointer-events-auto cursor-pointer">
+            <div className="text-6xl md:text-7xl filter sepia contrast-150 grayscale-[0.2]">☕</div>
+            {/* Fake Chai Stains on Desk */}
+            <div className="absolute -bottom-1 -left-2 w-16 h-8 border-b-4 border-[#3e2723]/60 rounded-[100%] rotate-12 bg-transparent mix-blend-multiply shadow-sm"></div>
+            <div className="absolute -bottom-3 -right-2 w-12 h-6 border-b-[3px] border-[#3e2723]/40 rounded-[100%] -rotate-12 bg-transparent mix-blend-multiply"></div>
+         </div>
       </div>
 
     </div>
