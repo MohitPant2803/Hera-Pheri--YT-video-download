@@ -452,7 +452,7 @@ export default function VideoDownloader() {
                     }
                   }}
                   placeholder="MAAL KIDHAR HAI 👀"
-                  className={`cinematic-input w-full py-5 px-4 md:p-6 pr-[85px] md:pr-[100px] border-2 text-[clamp(14px,3.5vw,22px)] leading-tight font-black outline-none tracking-widest transition-all duration-500 focus:scale-[1.01] placeholder:uppercase placeholder:text-zinc-600/80 ${
+                  className={`cinematic-input w-full py-5 px-3 md:px-6 pr-[75px] md:pr-[100px] border-2 text-[clamp(12px,3vw,18px)] leading-tight font-black outline-none tracking-wide transition-all duration-500 focus:scale-[1.01] placeholder:uppercase placeholder:text-[11px] sm:placeholder:text-[13px] md:placeholder:text-base placeholder:text-zinc-600/80 ${
                     isInputError
                       ? 'border-red-600 text-red-500 bg-red-950/20 focus:border-red-500 animate-shake'
                       : isValidLink
@@ -474,7 +474,7 @@ export default function VideoDownloader() {
                 <button
                   type="button"
                   onClick={handlePaste}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] md:text-sm font-black uppercase text-black bg-amber-500 hover:bg-amber-400 px-3 md:px-5 py-2.5 md:py-3 rounded-sm transition-all border-2 border-black shadow-[2px_2px_0_#000] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#000] active:translate-y-[2px] active:shadow-none"
+                  className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 text-[10px] md:text-sm font-black uppercase text-black bg-amber-500 hover:bg-amber-400 px-3 md:px-5 py-2.5 md:py-3 rounded-sm transition-all border-2 border-black shadow-[2px_2px_0_#000] hover:mt-[1px] hover:shadow-[1px_1px_0_#000] active:mt-[2px] active:shadow-none"
                   title="Paste from clipboard"
                 >
                   Paste
