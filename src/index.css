@@ -28,6 +28,8 @@
   pointer-events: none;
   z-index: 50;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .scanlines {
@@ -37,6 +39,8 @@
   z-index: 49;
   background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.12));
   background-size: 100% 4px;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .warning-stripes {
@@ -74,9 +78,9 @@
 }
 
 @keyframes driftSmoke {
-  0% { transform: translate(0, 0) scale(1); opacity: 0.1; }
-  50% { transform: translate(-2%, 2%) scale(1.05); opacity: 0.2; }
-  100% { transform: translate(2%, -2%) scale(1); opacity: 0.1; }
+  0% { transform: translate3d(0, 0, 0); opacity: 0.1; }
+  50% { transform: translate3d(-2%, 2%, 0); opacity: 0.2; }
+  100% { transform: translate3d(2%, -2%, 0); opacity: 0.1; }
 }
 
 .smoke-overlay {
@@ -85,9 +89,10 @@
   pointer-events: none;
   z-index: 1;
   background: 
-    radial-gradient(circle at 40% 40%, rgba(200, 160, 100, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 60% 60%, rgba(150, 100, 50, 0.03) 0%, transparent 50%);
-  filter: blur(60px);
+    radial-gradient(circle at 40% 40%, rgba(200, 160, 100, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 60% 60%, rgba(150, 100, 50, 0.03) 0%, transparent 60%);
+  will-change: transform;
+  transform: translateZ(0);
   animation: driftSmoke 15s infinite alternate ease-in-out;
 }
 
@@ -98,6 +103,8 @@
   z-index: 48;
   background-image: url("data:image/svg+xml,%3Csvg width='300' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20,30 L25,120 M80,20 L70,250 M250,50 L230,280 M150,10 L160,90' stroke='rgba(255,255,255,0.02)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
   background-size: 400px 400px;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .paper-texture {
@@ -127,8 +134,8 @@
 
 /* PHASE 8: DRAMATIC INTERACTION UI */
 @keyframes cinematicPulse {
-  0% { filter: brightness(1) contrast(1); transform: scale(1); }
-  100% { filter: brightness(1.25) contrast(1.1) drop-shadow(0 0 25px rgba(220, 38, 38, 0.5)); transform: scale(1.02); }
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(220, 38, 38, 0); }
+  100% { transform: scale(1.02); box-shadow: 0 0 25px rgba(220, 38, 38, 0.5); }
 }
 
 .cinematic-btn:not(:disabled):hover {
@@ -178,6 +185,8 @@
     0 0 60px rgba(74,246,38,0.25); /* Stronger ambient glow */
   position: relative;
   overflow: hidden;
+  contain: content;
+  transform: translateZ(0);
 }
 
 .crt-frame::before {
@@ -236,8 +245,6 @@
   text-shadow: 
     0 0 2px rgba(74, 246, 38, 0.9),
     0 0 5px rgba(74, 246, 38, 0.6); /* Removed blur and pixel bleed for clarity */
-  filter: contrast(1.3);
-  mix-blend-mode: screen;
 }
 
 .crt-text-red {
@@ -245,8 +252,6 @@
   text-shadow: 
     0 0 2px rgba(255, 51, 51, 0.9),
     0 0 5px rgba(255, 51, 51, 0.6);
-  filter: contrast(1.3);
-  mix-blend-mode: screen;
 }
 
 /* Rolling scanline bar */
@@ -272,12 +277,12 @@
 @keyframes crtFlicker {
   0%, 10% { opacity: 0.95; }
   5% { opacity: 0.85; }
-  15% { opacity: 1; filter: brightness(1.1); }
-  20%, 80% { opacity: 0.98; filter: brightness(1); }
+  15% { opacity: 1; }
+  20%, 80% { opacity: 0.98; }
   85% { opacity: 0.9; }
   90% { opacity: 1; }
-  95% { opacity: 0.88; filter: brightness(1.05); }
-  100% { opacity: 0.95; filter: brightness(1); }
+  95% { opacity: 0.88; }
+  100% { opacity: 0.95; }
 }
 
 .animate-crt-flicker {
@@ -323,7 +328,7 @@
   z-index: 1;
   user-select: none;
   letter-spacing: 0.2em;
-  filter: blur(1.5px);
+  text-shadow: 0 0 2px rgba(74, 246, 38, 0.05);
 }
 
 .mohit-signboard {

@@ -210,8 +210,8 @@ export default function VideoDownloader() {
     <div className="w-full min-h-screen wall-texture text-amber-100 flex flex-col justify-between items-center p-4 md:p-6 pb-32 md:pb-28 select-none overflow-x-hidden font-sans relative">
       
       {/* GLOBAL BOLLYWOOD COLOR GRADING */}
-      <div className="fixed inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[#2b1000]/10 to-[#120500]/80 mix-blend-multiply z-50"></div>
-      <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.8)] z-50"></div>
+      <div className="fixed inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(43,16,0,0.05)] to-[rgba(18,5,0,0.8)] z-50 transform-gpu"></div>
+      <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.8)] z-50 transform-gpu"></div>
 
       {/* GLOBAL CINEMATIC TEXTURES */}
       <div className="film-grain"></div>
@@ -220,32 +220,32 @@ export default function VideoDownloader() {
       <div className="smoke-overlay"></div>
       
       {/* CINEMATIC HANGING LAMP LIGHTING */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_-10%,transparent_0%,rgba(0,0,0,0.88)_65%,rgba(0,0,0,0.99)_100%)] z-0"></div>
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[90vw] md:w-[60vw] h-[50vh] bg-[radial-gradient(circle,rgba(212,175,55,0.18)_0%,transparent_70%)] blur-[80px] pointer-events-none z-0 mix-blend-overlay"></div>
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_-10%,transparent_0%,rgba(0,0,0,0.88)_65%,rgba(0,0,0,0.99)_100%)] z-0 transform-gpu"></div>
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[90vw] md:w-[60vw] h-[50vh] bg-[radial-gradient(circle,rgba(212,175,55,0.1)_0%,transparent_70%)] pointer-events-none z-0 transform-gpu"></div>
 
       {/* BACKGROUND STORYTELLING: FADED POSTERS */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.12] mix-blend-color-dodge">
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-10 transform-gpu">
         {/* Baburao Poster */}
         <div className="absolute top-[5%] left-[2%] w-72 h-[30rem] border-[12px] border-black/80 bg-[#1a1a1a] -rotate-3 flex flex-col items-center justify-center shadow-[0_0_80px_rgba(0,0,0,1)]">
-           <div className="text-9xl mb-6 grayscale filter contrast-200 blur-[1px]">👓</div>
-           <div className="font-black text-5xl text-black bollywood-text tracking-tighter mix-blend-overlay">BABURAO</div>
+           <div className="text-9xl mb-6 grayscale filter contrast-200">👓</div>
+           <div className="font-black text-5xl text-black bollywood-text tracking-tighter opacity-80">BABURAO</div>
         </div>
         {/* Raju Poster */}
         <div className="absolute top-[25%] right-[3%] w-64 h-[25rem] border-8 border-black/60 bg-[#222] rotate-6 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(0,0,0,1)]">
-           <div className="text-8xl mb-4 grayscale filter contrast-[2.5] blur-[1px]">👔</div>
-           <div className="font-black text-4xl text-black bollywood-text tracking-widest mix-blend-overlay">RAJU</div>
+           <div className="text-8xl mb-4 grayscale filter contrast-200">👔</div>
+           <div className="font-black text-4xl text-black bollywood-text tracking-widest opacity-80">RAJU</div>
         </div>
         {/* Shyam Poster */}
         <div className="absolute -bottom-[5%] left-[25%] w-80 h-[25rem] border-[10px] border-black/70 bg-[#151515] -rotate-12 flex flex-col items-center justify-start pt-10 shadow-[0_0_90px_rgba(0,0,0,1)]">
-           <div className="text-8xl mb-4 grayscale filter contrast-[3] blur-[2px]">🧑🏽‍🦱</div>
-           <div className="font-black text-5xl text-black bollywood-text tracking-widest mix-blend-overlay">SHYAM</div>
+           <div className="text-8xl mb-4 grayscale filter contrast-200">🧑🏽‍🦱</div>
+           <div className="font-black text-5xl text-black bollywood-text tracking-widest opacity-80">SHYAM</div>
         </div>
       </div>
 
       {/* LEFT SIDE PROPS (DESKTOP) */}
-      <div className="hidden xl:flex fixed left-0 top-0 bottom-0 w-80 pointer-events-none z-10 flex-col justify-between p-8">
+      <div className="hidden xl:flex fixed left-0 top-0 bottom-0 w-80 pointer-events-none z-10 flex-col justify-between p-8 transform-gpu">
         {/* Hanging Wires - Cinematic Foreground Blur */}
-        <svg className="absolute top-0 left-12 w-24 h-[60vh] opacity-40 drop-shadow-2xl blur-[2px] z-50" preserveAspectRatio="none">
+        <svg className="absolute top-0 left-12 w-24 h-[60vh] opacity-30 drop-shadow-xl z-50" preserveAspectRatio="none">
            <path d="M10,0 C30,100 -20,250 20,400 C40,550 0,700 10,800" stroke="#0a0a0a" strokeWidth="6" fill="none"/>
            <path d="M30,0 C10,150 40,300 10,450" stroke="#111" strokeWidth="4" fill="none"/>
         </svg>
@@ -259,23 +259,22 @@ export default function VideoDownloader() {
            <div className="absolute -bottom-6 -left-12 w-[140%] h-12 bg-gradient-to-b from-[#1a120c] to-[#0a0705] border-t-[3px] border-[#3a271d] shadow-[0_15px_30px_rgba(0,0,0,0.95)] z-10 skew-x-[-12deg] pointer-events-auto">
               {/* Desk Scratches & Chai Stain */}
               <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' fill=\'%23000\'/%3E%3C/svg%3E")'}}></div>
-              <div className="absolute top-2 right-6 w-8 h-4 rounded-[100%] border-2 border-black/60 bg-[#2b170a]/30 mix-blend-multiply rotate-12 blur-[0.5px]"></div>
+              <div className="absolute top-2 right-6 w-8 h-4 rounded-[100%] border-2 border-black/60 bg-[#2b170a]/30 rotate-12"></div>
            </div>
 
            {/* Cigarette Smoke Rising */}
-           <div className="absolute -bottom-8 left-0 w-24 h-40 bg-white/5 blur-[12px] animate-[driftSmoke_10s_infinite_ease-in-out] pointer-events-none z-30 mix-blend-screen opacity-50"></div>
+           <div className="absolute -bottom-8 left-0 w-24 h-40 bg-[radial-gradient(circle,rgba(255,255,255,0.03)_0%,transparent_60%)] animate-[driftSmoke_10s_infinite_ease-in-out] pointer-events-none z-30 opacity-50"></div>
 
            {/* System Terminal - Ultra Realistic CRT */}
            <div className="crt-frame relative pointer-events-auto max-w-[260px] transform hover:rotate-1 transition-transform duration-500 cursor-crosshair z-20 drop-shadow-[0_20px_25px_rgba(0,0,0,0.9)]">
              {/* Sticky Note */}
              <div className="absolute -right-3 top-8 bg-yellow-200/90 text-zinc-900 p-2 text-[7px] font-black font-sans rotate-[12deg] shadow-[2px_4px_8px_rgba(0,0,0,0.7)] border-t border-l border-yellow-100 z-50 uppercase tracking-tighter">
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-2 bg-red-600/40 rotate-6 shadow-sm blur-[0.5px]"></div>
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-2 bg-red-600/40 rotate-6 shadow-sm"></div>
                 Kabira Number<br/><span className="text-red-700">DO NOT LIFT</span><br/>Cross Conn.
              </div>
 
-             {/* Frame details - Rust, dirt, scratches */}
-             <div className="absolute inset-0 pointer-events-none opacity-50 mix-blend-color-burn" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.15\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' fill=\'%238b4513\'/%3E%3C/svg%3E")'}}></div>
-             <div className="absolute inset-0 pointer-events-none border-[3px] border-white/5 rounded-lg mix-blend-overlay"></div>
+             <div className="absolute inset-0 pointer-events-none opacity-30" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.15\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' fill=\'%238b4513\'/%3E%3C/svg%3E")'}}></div>
+             <div className="absolute inset-0 pointer-events-none border-[3px] border-white/5 rounded-lg opacity-20"></div>
              
              {/* Old Buttons & Knobs */}
              <div className="absolute bottom-2 left-4 flex gap-3 z-30">
@@ -335,17 +334,17 @@ export default function VideoDownloader() {
         </div>
 
         {/* Old Telephone */}
-        <div className="relative mt-auto mb-16 ml-4 opacity-[0.35] drop-shadow-[2px_10px_10px_rgba(0,0,0,1)] mix-blend-luminosity rotate-[-12deg] group hover:opacity-80 transition-opacity">
+        <div className="relative mt-auto mb-16 ml-4 opacity-[0.35] drop-shadow-[2px_10px_10px_rgba(0,0,0,1)] rotate-[-12deg] group hover:opacity-80 transition-opacity grayscale-[0.5]">
            <div className="text-8xl filter sepia contrast-[1.5]">☎️</div>
            <div className="absolute -bottom-2 right-0 text-[10px] bg-[#e3d2a6] text-black font-bold px-1 rotate-12 border border-black shadow-sm">KABIRA</div>
         </div>
       </div>
       
       {/* RIGHT SIDE PROPS (DESKTOP) */}
-      <div className="hidden xl:flex fixed right-0 top-0 bottom-0 w-80 pointer-events-none z-10 flex-col items-end p-8 gap-8">
+      <div className="hidden xl:flex fixed right-0 top-0 bottom-0 w-80 pointer-events-none z-10 flex-col items-end p-8 gap-8 transform-gpu">
         {/* Warning Notice */}
         <div className="paper-texture text-red-950 p-4 w-52 rotate-3 shadow-[4px_4px_10px_rgba(0,0,0,0.8)] pointer-events-auto border border-red-900/30 mt-10">
-           <div className="absolute top-[-8px] left-1/2 -translate-x-1/2 w-6 h-6 bg-amber-600 rounded-full mix-blend-multiply opacity-90 shadow-md flex items-center justify-center text-[10px]">📌</div>
+           <div className="absolute top-[-8px] left-1/2 -translate-x-1/2 w-6 h-6 bg-amber-600 rounded-full opacity-90 shadow-md flex items-center justify-center text-[10px]">📌</div>
            <div className="font-black text-lg border-b-2 border-red-900/50 pb-1 mb-2 text-center uppercase tracking-tighter">Warning!</div>
            <div className="text-[11px] font-bold leading-tight font-mono space-y-2">
               <p>1. BILKUL RIKS NAHI DENE KA.</p>
@@ -356,9 +355,9 @@ export default function VideoDownloader() {
 
         {/* Polaroid Missing Sign */}
         <div className="bg-[#e4dcc7] p-2 pb-8 w-36 shadow-[5px_10px_20px_rgba(0,0,0,0.9)] rotate-[-6deg] filter sepia-[0.4] pointer-events-auto border border-zinc-400/50 mt-auto mb-20 relative hover:rotate-0 transition-transform">
-           <div className="absolute top-[-10px] right-2 w-8 h-4 bg-[#d0c6a8] shadow-sm rotate-12 opacity-80 mix-blend-multiply"></div> {/* Tape */}
+           <div className="absolute top-[-10px] right-2 w-8 h-4 bg-[#d0c6a8] shadow-sm rotate-12 opacity-80"></div> {/* Tape */}
            <div className="w-full aspect-square bg-[#111] flex items-center justify-center overflow-hidden border border-zinc-500/50 shadow-inner">
-             <div className="text-5xl opacity-40 grayscale blur-[1px]">🤦‍♂️</div>
+             <div className="text-5xl opacity-40 grayscale">🤦‍♂️</div>
            </div>
            <div className="text-center text-[10px] font-black text-zinc-800 mt-2 -rotate-2 uppercase tracking-widest border-b border-zinc-400 inline-block w-full">DO NOT CALL</div>
         </div>
@@ -368,7 +367,7 @@ export default function VideoDownloader() {
       <header className="w-full max-w-4xl text-center mt-8 md:mt-12 mb-4 flex-shrink-0 relative z-30 flex flex-col items-center">
         
         {/* FAKE COMPANY SEALS & LABELS */}
-        <div className="absolute top-0 left-2 md:-left-8 border-4 border-red-700 text-red-700 font-black text-[10px] md:text-sm px-2 py-1 -rotate-[15deg] mix-blend-color-dodge md:mix-blend-normal tracking-[0.3em] uppercase rounded-sm shadow-sm z-40 opacity-90 pointer-events-none">
+        <div className="absolute top-0 left-2 md:-left-8 border-4 border-red-700 text-red-700 font-black text-[10px] md:text-sm px-2 py-1 -rotate-[15deg] tracking-[0.3em] uppercase rounded-sm shadow-sm z-40 opacity-90 pointer-events-none">
           CONFIDENTIAL
         </div>
         <div className="absolute top-2 right-2 md:-right-8 border border-zinc-500/50 text-zinc-500/80 font-bold text-[8px] md:text-[10px] px-2 py-0.5 rotate-[8deg] tracking-widest uppercase font-mono bg-black/60 z-40 pointer-events-none">
@@ -383,7 +382,7 @@ export default function VideoDownloader() {
 
         {/* MAIN CINEMATIC TITLE */}
         <div className="relative w-full flex justify-center mt-2 mb-4">
-          <div className="absolute inset-0 bg-yellow-600/20 blur-[60px] -z-10 rounded-[100%]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(202,138,4,0.15)_0%,transparent_70%)] -z-10"></div>
           <h1 className="text-7xl md:text-[150px] leading-[0.85] font-black tracking-tighter uppercase bollywood-title relative z-10 scale-y-110 px-4">
             Hera Pheri
           </h1>
@@ -504,8 +503,8 @@ export default function VideoDownloader() {
             {loading && (
               <div className="w-full h-full flex flex-col items-center justify-center p-8 relative overflow-hidden bg-[#050505] border-2 border-zinc-800 shadow-[inset_0_0_40px_rgba(0,0,0,1)]">
                 {/* Fake Cinematic Rotating Fan Shadows */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] aspect-square opacity-20 pointer-events-none mix-blend-overlay">
-                  <div className="w-full h-full bg-[conic-gradient(from_0deg,transparent_0deg,rgba(0,0,0,1)_45deg,transparent_90deg,transparent_180deg,rgba(0,0,0,1)_225deg,transparent_270deg)] animate-fan rounded-full blur-[2px]"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] aspect-square opacity-10 pointer-events-none">
+                  <div className="w-full h-full bg-[conic-gradient(from_0deg,transparent_0deg,rgba(0,0,0,1)_45deg,transparent_90deg,transparent_180deg,rgba(0,0,0,1)_225deg,transparent_270deg)] animate-fan rounded-full"></div>
                 </div>
                 
                 {/* Fake Server Activity Rack */}
@@ -564,10 +563,16 @@ export default function VideoDownloader() {
                 <div className="w-full relative z-10 p-2 bg-[#d1c2a3] border border-zinc-400 shadow-inner">
                   <div className="relative rounded-sm overflow-hidden border-2 border-black shadow-[0_4px_15px_rgba(0,0,0,0.8)] group aspect-video bg-black">
                     <img
-                      src={videoData?.thumbnail || videoData?.video?.thumbnail || `https://img.youtube.com/vi/${videoData?.id}/maxresdefault.jpg`}
-                      alt="Thumbnail"
-                      onError={(e) => { e.target.src = `https://img.youtube.com/vi/${videoData?.id}/hqdefault.jpg`; }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100 mix-blend-luminosity group-hover:mix-blend-normal"
+                      src={videoData?.thumbnail || videoData?.video?.thumbnail || `https://i.ytimg.com/vi_webp/${videoData?.id}/maxresdefault.webp`}
+                      alt={`${videoData?.title || 'Recovered Video'} thumbnail`}
+                      fetchPriority="high"
+                      decoding="async"
+                      loading="eager"
+                      onError={(e) => { 
+                        e.target.onerror = null; // Prevents infinite loop if fallback also fails
+                        e.target.src = `https://img.youtube.com/vi/${videoData?.id}/hqdefault.jpg`; 
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100 grayscale-[0.3] group-hover:grayscale-0"
                     />
                     <div className="absolute inset-0 shadow-[inset_0_0_40px_rgba(0,0,0,0.9)] pointer-events-none"></div>
                     <span className="absolute bottom-2 right-2 bg-amber-500 text-black border border-black px-2 py-0.5 text-xs font-black tracking-widest">
@@ -633,7 +638,7 @@ export default function VideoDownloader() {
       <footer className="w-full text-center flex flex-col items-center justify-center flex-shrink-0 relative z-30 mb-10 md:mb-4 pb-6">
         <div className="relative inline-block px-8 py-3 bg-[#110a05] border-4 border-[#3e2312] shadow-[0_15px_25px_rgba(0,0,0,0.9),inset_0_0_20px_rgba(0,0,0,0.8)] transform -rotate-2 group pointer-events-auto mt-4">
            {/* Dusty Scratches on the signboard */}
-           <div className="absolute inset-0 pointer-events-none opacity-60 mix-blend-color-burn" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' fill=\'%238b4513\'/%3E%3C/svg%3E")'}}></div>
+           <div className="absolute inset-0 pointer-events-none opacity-40" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' fill=\'%238b4513\'/%3E%3C/svg%3E")'}}></div>
            <div className="absolute inset-0 pointer-events-none glass-scratch opacity-60"></div>
            
            {/* Tube light glow effect text */}
@@ -648,20 +653,20 @@ export default function VideoDownloader() {
       </footer>
       
       {/* BOTTOM DESK EDGE & PROPS */}
-      <div className="fixed bottom-0 left-0 right-0 h-24 md:h-32 pointer-events-none z-20 flex justify-between items-end px-4 md:px-16 overflow-hidden">
+      <div className="fixed bottom-0 left-0 right-0 h-24 md:h-32 pointer-events-none z-20 flex justify-between items-end px-4 md:px-16 overflow-hidden transform-gpu">
          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0502] via-[#1a0f05]/95 to-transparent border-t-2 border-[#3e2723]/40 shadow-[0_-15px_40px_rgba(0,0,0,0.9)]"></div>
          
          {/* Approval Stamp */}
-         <div className="relative z-30 mb-6 md:mb-10 ml-2 md:ml-20 text-red-700/60 font-black text-2xl md:text-4xl border-[4px] border-red-700/60 px-3 py-1 md:px-4 md:py-2 -rotate-[15deg] mix-blend-multiply rounded-sm bollywood-text tracking-[0.2em] pointer-events-auto">
+         <div className="relative z-30 mb-6 md:mb-10 ml-2 md:ml-20 text-red-700/80 font-black text-2xl md:text-4xl border-[4px] border-red-700/80 px-3 py-1 md:px-4 md:py-2 -rotate-[15deg] rounded-sm bollywood-text tracking-[0.2em] pointer-events-auto">
             ARRANGED
          </div>
 
          {/* Chai Glass (Hidden on very small mobile screens) */}
-         <div className="hidden sm:block relative z-30 mb-2 mr-10 md:mr-32 opacity-80 drop-shadow-[0_15px_15px_rgba(0,0,0,1)] mix-blend-luminosity hover:opacity-100 hover:contrast-100 transition-all pointer-events-auto cursor-pointer">
+         <div className="hidden sm:block relative z-30 mb-2 mr-10 md:mr-32 opacity-80 drop-shadow-[0_15px_15px_rgba(0,0,0,1)] grayscale-[0.3] hover:opacity-100 hover:grayscale-0 transition-all pointer-events-auto cursor-pointer">
             <div className="text-6xl md:text-7xl filter sepia contrast-150 grayscale-[0.2]">☕</div>
             {/* Fake Chai Stains on Desk */}
-            <div className="absolute -bottom-1 -left-2 w-16 h-8 border-b-4 border-[#3e2723]/60 rounded-[100%] rotate-12 bg-transparent mix-blend-multiply shadow-sm"></div>
-            <div className="absolute -bottom-3 -right-2 w-12 h-6 border-b-[3px] border-[#3e2723]/40 rounded-[100%] -rotate-12 bg-transparent mix-blend-multiply"></div>
+            <div className="absolute -bottom-1 -left-2 w-16 h-8 border-b-4 border-[#3e2723]/60 rounded-[100%] rotate-12 bg-transparent shadow-sm"></div>
+            <div className="absolute -bottom-3 -right-2 w-12 h-6 border-b-[3px] border-[#3e2723]/40 rounded-[100%] -rotate-12 bg-transparent"></div>
          </div>
       </div>
 
