@@ -587,25 +587,30 @@ export default function VideoDownloader() {
                      <h3 className="text-sm md:text-lg font-black text-black line-clamp-2 uppercase tracking-tighter leading-tight">{videoData?.title}</h3>
                   </div>
 
-                  <div className="flex flex-col gap-2 text-xs">
+                  <div className="flex flex-col gap-2 text-xs w-full">
                     <label className="font-black text-zinc-800 tracking-widest uppercase bg-zinc-300 inline-block w-fit px-2 py-1 shadow-sm border border-zinc-400">KITNA QUALITY CHAHIYE?</label>
-                    <div className="flex flex-wrap gap-2">
-                      {videoData?.videos?.items?.length > 0 ? videoData.videos.items.map((video, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedQuality(video.url)}
-                          className={`tape-button px-4 py-3 font-black text-[11px] md:text-xs uppercase tracking-wider rounded-sm border-2 border-black transition-all active:translate-y-[4px] active:shadow-none ${
-                            selectedQuality === video.url 
-                              ? 'bg-red-600 text-white' 
-                              : 'bg-[#b8a98a] text-black hover:bg-[#a69777]'
-                          }`}
+                    {videoData?.videos?.items?.length > 0 ? (
+                      <div className="relative w-full group">
+                        <select
+                          value={selectedQuality}
+                          onChange={(e) => setSelectedQuality(e.target.value)}
+                          className="w-full bg-[#b8a98a] hover:bg-[#a69777] text-black border-[3px] border-black font-black text-sm md:text-base uppercase tracking-widest px-4 py-3 rounded-sm shadow-[0_4px_0_#000] outline-none cursor-pointer appearance-none transition-all focus:border-red-700"
                         >
-                          {video.quality}
-                        </button>
-                      )) : (
-                        <span className="text-red-700 font-black">NO QUALITY OPTIONS FOUND</span>
-                      )}
-                    </div>
+                          {videoData.videos.items.map((video, index) => (
+                            <option key={index} value={video.url} className="font-bold text-sm bg-[#e3d5b8] text-black">
+                              {video.quality}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-black text-[10px] md:text-xs font-black">
+                          ▼
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full bg-red-950 border-[3px] border-red-700 text-red-500 font-black tracking-widest uppercase p-3 text-center shadow-[0_4px_0_rgba(185,28,28,0.5)]">
+                        NO QUALITY OPTIONS FOUND
+                      </div>
+                    )}
                   </div>
 
                   {selectedQuality && (
