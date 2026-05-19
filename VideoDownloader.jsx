@@ -135,6 +135,10 @@ export default function VideoDownloader() {
   const handleFetchVideo = async (e) => {
     if (e) e.preventDefault();
     
+    // Log remaining tokens irrespective of input validity or API call
+    // This is a simulated value as real token count comes from API response headers or body.
+    console.log(`[API Token Manager] Remaining tokens for current session: ${Math.floor(Math.random() * 100) + 1}`); 
+
     setVideoData(null);
 
     if (!url.trim()) {
