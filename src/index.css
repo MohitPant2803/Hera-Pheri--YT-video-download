@@ -334,15 +334,32 @@
 .mohit-signboard {
   color: #fffde7;
   text-shadow: 
+    0 0 2px #fff,
+    0 0 5px #fef08a,
+    0 0 15px #eab308,
+    0 0 30px #b45309;
+  transform: translateZ(0);
+  will-change: opacity;
+}
+
+@media (min-width: 768px) {
+  .mohit-signboard {
+    text-shadow: 
     0 0 4px #fff,
     0 0 10px #fef08a,
     0 0 20px #eab308,
     0 0 40px #b45309,
     0 0 80px #78350f;
+  }
+}
+
+@keyframes signboardPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
 }
 
 .signboard-flicker {
-  animation: crtFlicker 3s infinite alternate;
+  animation: signboardPulse 2.5s infinite alternate ease-in-out;
 }
 
 /* PHASE 12: CINEMATIC INPUT MICRO-INTERACTIONS */

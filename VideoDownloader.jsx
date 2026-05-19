@@ -367,10 +367,10 @@ export default function VideoDownloader() {
       <header className="w-full max-w-4xl text-center mt-8 md:mt-12 mb-4 flex-shrink-0 relative z-30 flex flex-col items-center">
         
         {/* FAKE COMPANY SEALS & LABELS */}
-        <div className="absolute top-0 left-2 md:-left-8 border-4 border-red-700 text-red-700 font-black text-[10px] md:text-sm px-2 py-1 -rotate-[15deg] tracking-[0.3em] uppercase rounded-sm shadow-sm z-40 opacity-90 pointer-events-none">
+        <div className="hidden md:block absolute top-0 left-2 md:-left-8 border-4 border-red-700 text-red-700 font-black text-[10px] md:text-sm px-2 py-1 -rotate-[15deg] tracking-[0.3em] uppercase rounded-sm shadow-sm z-40 opacity-90 pointer-events-none">
           CONFIDENTIAL
         </div>
-        <div className="absolute top-2 right-2 md:-right-8 border border-zinc-500/50 text-zinc-500/80 font-bold text-[8px] md:text-[10px] px-2 py-0.5 rotate-[8deg] tracking-widest uppercase font-mono bg-black/60 z-40 pointer-events-none">
+        <div className="hidden md:block absolute top-2 right-2 md:-right-8 border border-zinc-500/50 text-zinc-500/80 font-bold text-[8px] md:text-[10px] px-2 py-0.5 rotate-[8deg] tracking-widest uppercase font-mono bg-black/60 z-40 pointer-events-none">
           MEDIA RECOVERY UNIT
         </div>
 
