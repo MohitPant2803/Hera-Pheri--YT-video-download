@@ -81,6 +81,8 @@ export default function VideoDownloader() {
   const [selectedQuality, setSelectedQuality] = useState('');
   const [errorText, setErrorText] = useState("");
   const [isInputError, setIsInputError] = useState(false);
+  const [isValidLink, setIsValidLink] = useState(false);
+  const [showPhase2, setShowPhase2] = useState(false);
 
   // Clipboard Paste Helper
   const handlePaste = async () => {
@@ -106,6 +108,29 @@ export default function VideoDownloader() {
     }
     return () => clearInterval(interval);
   }, [loading]);
+
+  // Real-time Validation for cinematic interactions
+  const validateUrl = (testUrl) => {
+    const validId = getYouTubeId(testUrl);
+    const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+    if (testUrl.trim() && ytRegex.test(testUrl) && validId) {
+      setIsValidLink(true);
+    } else {
+      setIsValidLink(false);
+    }
+  };
+
+  // Phase 2 comedic dialogue delay
+  useEffect(() => {
+    let timeout;
+    if (isValidLink) {
+      // Pause before delivering the punchline
+      timeout = setTimeout(() => setShowPhase2(true), 1200); 
+    } else {
+      setShowPhase2(false);
+    }
+    return () => clearTimeout(timeout);
+  }, [isValidLink]);
 
   const handleFetchVideo = async (e) => {
     if (e) e.preventDefault();
@@ -283,6 +308,11 @@ export default function VideoDownloader() {
                       <span className="animate-[pulse_2s_infinite]">MEM: 64K</span>
                    </div>
                    <div className="animate-crt-flicker space-y-2 mt-2">
+                      {/* DYNAMIC SOURCE STATUS */}
+                      <p className={`crt-text ${!isValidLink && 'animate-crt'}`}>
+                         <span className="opacity-60">[02:13:40]</span> {'>'} SOURCE... {isValidLink ? <span className="text-green-300 drop-shadow-[0_0_5px_rgba(74,246,38,1)]">CONFIRMED ✔</span> : <span className="animate-pulse opacity-70">AWAITING</span>}
+                      </p>
+
                       <p className="crt-text"><span className="opacity-60">[02:14:03]</span> {'>'} RAJU SETTING LAGA RAHA <span className="ml-1 text-green-300 drop-shadow-[0_0_5px_rgba(74,246,38,1)]">[✔]</span></p>
                       <p className="crt-text"><span className="opacity-60">[02:14:18]</span> {'>'} SHYAM PAISA KA JUGAAD... <span className="ml-1 inline-block animate-[spin_3s_linear_infinite] text-green-400">⟳</span></p>
                       <p className="crt-text animate-crt"><span className="opacity-60">[02:14:45]</span> {'>'} BABURAO TENSION NA LE... <span className="ml-1 animate-pulse">[OK]</span></p>
@@ -408,28 +438,43 @@ export default function VideoDownloader() {
           {/* THE CONTROL FORM ROW */}
           <form onSubmit={handleFetchVideo} className="flex flex-col w-full flex-shrink-0 bg-black/40 p-4 md:p-6 border-2 border-zinc-800 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] relative gap-4">
             <div className="flex flex-col md:flex-row gap-4 w-full items-stretch md:items-center">
-              <div className="relative flex-1">
+              <div className="relative flex-1 group/input">
                 <input
                   type="text"
                   value={url}
                   onChange={(e) => {
-                    setUrl(e.target.value);
+                    const val = e.target.value;
+                    setUrl(val);
+                    validateUrl(val);
                     if (isInputError) {
                       setIsInputError(false);
                       setErrorText("");
                     }
                   }}
-                  placeholder="KOI RISK NAHI LENE KA... CHAL LINK DAAL!"
-                  className={`w-full p-5 md:p-6 pr-24 bg-[#0a0a0a] border-2 text-base md:text-2xl font-black outline-none shadow-[inset_0_4px_15px_rgba(0,0,0,1)] tracking-wide transition-all duration-300 focus:scale-[1.01] placeholder:uppercase placeholder:text-zinc-600 ${
+                  placeholder="MAAL KIDHAR HAI 👀"
+                  className={`cinematic-input w-full py-5 px-4 md:p-6 pr-[85px] md:pr-[100px] border-2 text-[clamp(14px,3.5vw,22px)] leading-tight font-black outline-none tracking-widest transition-all duration-500 focus:scale-[1.01] placeholder:uppercase placeholder:text-zinc-600/80 ${
                     isInputError
                       ? 'border-red-600 text-red-500 bg-red-950/20 focus:border-red-500 animate-shake'
-                      : 'border-zinc-700 text-amber-500 focus:border-amber-500 focus:bg-[#111] focus:shadow-[0_0_15px_rgba(245,158,11,0.2),inset_0_4px_15px_rgba(0,0,0,1)]'
+                      : isValidLink
+                        ? 'cinematic-input-valid text-amber-400'
+                        : 'border-zinc-700 text-amber-500 focus:border-amber-500 focus:shadow-[0_0_20px_rgba(245,158,11,0.15),inset_0_4px_20px_rgba(0,0,0,1)]'
                   }`}
                 />
+                
+                {/* COMEDIC SUCCESS DIALOGUE (STICKY NOTE) */}
+                {isValidLink && !isInputError && (
+                  <div className="absolute -bottom-16 md:-bottom-20 left-4 md:left-8 z-50 animate-dialogue origin-top-left pointer-events-none">
+                    <div className="bg-[#fef08a] border-l-[6px] border-[#eab308] p-3 md:p-4 shadow-[4px_8px_20px_rgba(0,0,0,0.7),inset_0_0_20px_rgba(234,179,8,0.2)] text-[clamp(12px,2.5vw,16px)] flex flex-col font-bold tracking-wide">
+                      <div className="text-zinc-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">"Link hai toh...</div>
+                      <div className={`text-red-700 font-black mt-1 transition-all duration-500 ${showPhase2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}> kya kuch nahi ho sakta 😁"</div>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={handlePaste}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs md:text-sm font-black uppercase text-black bg-amber-500 hover:bg-amber-400 px-4 py-3 rounded-sm transition-all border-2 border-black shadow-[2px_2px_0_#000] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#000] active:translate-y-[2px] active:shadow-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] md:text-sm font-black uppercase text-black bg-amber-500 hover:bg-amber-400 px-3 md:px-5 py-2.5 md:py-3 rounded-sm transition-all border-2 border-black shadow-[2px_2px_0_#000] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#000] active:translate-y-[2px] active:shadow-none"
                   title="Paste from clipboard"
                 >
                   Paste
